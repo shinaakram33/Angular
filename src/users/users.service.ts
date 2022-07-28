@@ -52,6 +52,9 @@ export class UsersService {
       throw new UnauthorizedException('Please check you login credentials')
 
     }
+
+
+    console.log('test');
   }
 
 
