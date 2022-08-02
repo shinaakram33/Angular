@@ -106,6 +106,7 @@ export class UsersService {
     }
   }
 
+  
 
   async readAll(): Promise<User[]> {
     return await this.userModel.find().exec();
