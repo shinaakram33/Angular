@@ -1,20 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Param, UseGuards, Res, Delete, Put, HttpStatus, Get } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from 'src/schemas/user.schema';
-// import { UpdateUserDto } from './dto/update-user.dto';
-// import { AuthGuard } from '@nestjs/passport';
-// import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-// import { LocalAuthGuard } from 'src/auth/local-auth.guard';
-// import { AuthService } from 'src/auth/auth.service';
 import { LoginUserDTO } from './dto/login-user.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { JwtAuthGuard } from 'src//users/auth/jwt-auth.guard';
+import { ForgetPasswordDto } from './dto/forget-password.dto';
+import { ValidatePincodeDto } from './dto/validate-pincode.dto';
 
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService,
-    // private authService: AuthService
-    ) {}
+  ) { }
 
   @Post('signup')
   create(@Body() createUserDto: CreateUserDto): Promise<User> {
@@ -22,30 +20,57 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  // @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Body() loginUserDto: LoginUserDTO) {
     return this.usersService.login(loginUserDto);
   }
 
-
-  /*@Get()
-  findAll() {
-    return this.usersService.findAll();
+  @UseGuards(JwtAuthGuard)
+  @Post('resetPassword/:_id')
+  async resetPass(@Param('_id') id, @Body() resetPasswordDto: ResetPasswordDto) {
+    return this.usersService.resetPass(resetPasswordDto, id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  @Post('forgetPassword')
+  async forgetPass(@Body() forgetPasswordDto: ForgetPasswordDto) {
+    return this.usersService.forgetPass(forgetPasswordDto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @Post('validate/pincode/:pincode')
+  async validatePincode(@Param('pincode') pincode, @Body() validatePincodeDto: ValidatePincodeDto) {
+    return this.usersService.validatePincode(validatePincodeDto, parseInt(pincode));
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
-  }*/
+
+  @Get('getall')
+  async fetchAll(@Res() response) {
+    const users = await this.usersService.readAll();
+    return response.status(HttpStatus.OK).json({
+      users
+    })
+  }
+
+  @Get('getOne/:id')
+  async findById(@Res() response, @Param('id') id) {
+    const user = await this.usersService.readById(id);
+    return response.status(HttpStatus.OK).json({
+      user
+    })
+  }
+
+  @Put('update/:id')
+  async update(@Res() response, @Param('id') id, @Body() user: User) {
+    const updateUser = await this.usersService.update(id, user);
+    return response.status(HttpStatus.OK).json({
+      updateUser
+    })
+  }
+
+  @Delete('delete/:id')
+  async delete(@Res() response, @Param('id') id) {
+    const deleteUser = await this.usersService.delete(id);
+    return response.status(HttpStatus.OK).json({
+      deleteUser
+    })
+  }
 }

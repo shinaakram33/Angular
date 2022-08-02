@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { IsEmail } from 'class-validator';
 import { Document } from 'mongoose';
-// import { User } from 'src/users/entities/user.entity';
 
 export type UserDocument = User & Document;
 
@@ -19,6 +18,9 @@ export class User {
 
   @Prop()
   password: string;
+
+  @Prop()
+  pinCode: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

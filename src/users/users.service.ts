@@ -1,17 +1,14 @@
-/*import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';*/
-
 import { Model } from 'mongoose';
-import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from 'src/schemas/user.schema';
+import { User } from 'src/schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-// import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { LoginUserDTO } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ForgetPasswordDto } from './dto/forget-password.dto';
+import { ValidatePincodeDto } from './dto/validate-pincode.dto';
 
 @Injectable()
 export class UsersService {
@@ -28,7 +25,6 @@ export class UsersService {
       try {
         return this.userModel.create({ ...createUserDto, password: hashedPassword });
       } catch (err) {
-        console.log('err -> ', err)
         throw new BadRequestException(err.message)
       }
     } else {
@@ -38,8 +34,8 @@ export class UsersService {
 
   async login(userCredentials: LoginUserDTO): Promise<any> {
     const { email, password } = userCredentials
-    const user: any = await this.userModel.findOne({ email: email })
-    if (user && bcrypt.compare(password, user.password)) {
+    const user: any = await this.userModel.findOne({ email })
+    if (user && await bcrypt.compare(password, user.password)) {
       const payload: { email: string } = {
         email
       }
@@ -52,41 +48,79 @@ export class UsersService {
       throw new UnauthorizedException('Please check you login credentials')
 
     }
-
-
-    console.log('test');
   }
 
 
-  // async readByEmail(email): Promise<User> {
-  //   const { MongoClient } = require("mongodb");
-  //   const uri = "mongodb+srv://thealitahir:punjabf13@cluster0.qbtub.azure.mongodb.net/authentication";
-  //   const client = new MongoClient(uri);
-  //   const db = client.db("authentication;")
-  //   const coll = db.collection("users");
-  //   const cursor = coll.find();
-  //   client.close();
-  //   return cursor.forEach(user => cursor.email === email);
-  //   //return await this.userModel.find(email).exec();
-  // }
-
-
-
-
-
-  /*findAll() {
-    return `This action returns all users`;
+  async resetPass(resetPasswordDto: ResetPasswordDto, id: any): Promise<any> {
+    const { oldPassword, newPassword, confirmPassword } = resetPasswordDto
+    const user: any = await this.userModel.findOne({ id })
+    if (user && bcrypt.compare(oldPassword, user.password)) {
+      if (newPassword === confirmPassword) {
+        const salt = await bcrypt.genSalt();
+        const hashedPassword = await bcrypt.hash(newPassword, salt)
+        return this.userModel.findOneAndUpdate(id, { password: hashedPassword });
+      }
+      else {
+        throw new ConflictException('Passwords do not match')
+      }
+    }
+    else {
+      if (!user) {
+        throw new NotFoundException("User does not exist")
+      }
+      else {
+        throw new ConflictException("Incorrect password")
+      }
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async forgetPass(forgetPasswordDto: ForgetPasswordDto): Promise<any> {
+    const { email } = forgetPasswordDto
+    const user: any = await this.userModel.findOne({ email })
+    console.log({ user })
+    if (user) {
+      const code = Math.floor(1000 + Math.random() * 9000);
+      await this.userModel.findOneAndUpdate(user.id, { pinCode: code });
+      return `Your Pin code is ${code}`
+    }
+    else {
+      throw new NotFoundException('Incorrect email')
+    }
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async validatePincode(validatePincodeDto: ValidatePincodeDto, pincode: number) {
+    const {newPassword, confirmPassword } = validatePincodeDto
+    const user: any = await this.userModel.findOne({ pincode })
+    if (pincode === user.pinCode && newPassword === confirmPassword) {
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(newPassword, salt)
+      return await this.userModel.findOneAndUpdate(user.id, { password: hashedPassword });
+    }
+    else {
+      if (pincode !== user.pinCode) {
+        throw new BadRequestException('Incorrect code')
+      }
+      else {
+        throw new ConflictException('Passwords do not match')
+      }
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }*/
+
+  async readAll(): Promise<User[]> {
+    return await this.userModel.find().exec();
+}
+
+async readById(id): Promise<User> {
+    return await this.userModel.findById(id).exec();
+}
+
+async update(id, book: User): Promise<User> {
+    return await this.userModel.findByIdAndUpdate(id, book, {new: true})
+}
+
+async delete(id): Promise<any> {
+    return await this.userModel.findByIdAndRemove(id);
+}
+
 }
