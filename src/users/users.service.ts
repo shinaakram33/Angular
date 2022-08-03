@@ -88,13 +88,29 @@ export class UsersService {
     }
   }
 
-  async validatePincode(validatePincodeDto: ValidatePincodeDto, pincode: number) {
+  async validatePincode(pincode: number) {
+    const user: any = await this.userModel.findOne({ pincode })
+  if (pincode === user.pinCode) {
+    return "Pincode verified";
+   }
+   else {
+    throw new BadRequestException("Incorrect code")
+   }
+  }
+
+  async setNewPassword(validatePincodeDto: ValidatePincodeDto, pincode: number) {
     const {newPassword, confirmPassword } = validatePincodeDto
     const user: any = await this.userModel.findOne({ pincode })
     if (pincode === user.pinCode && newPassword === confirmPassword) {
       const salt = await bcrypt.genSalt();
       const hashedPassword = await bcrypt.hash(newPassword, salt)
-      return await this.userModel.findOneAndUpdate(user.id, { password: hashedPassword });
+      await this.userModel.findOneAndUpdate(user.id, { password: hashedPassword });
+        let obj = {
+          "status": 200,
+          "message": "Password has been set"
+        }
+
+      return obj;;
     }
     else {
       if (pincode !== user.pinCode) {

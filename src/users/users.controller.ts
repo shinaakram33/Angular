@@ -36,9 +36,14 @@ export class UsersController {
     return this.usersService.forgetPass(forgetPasswordDto);
   }
 
-  @Post('validate/pincode/:pincode')
-  async validatePincode(@Param('pincode') pincode, @Body() validatePincodeDto: ValidatePincodeDto) {
-    return this.usersService.validatePincode(validatePincodeDto, parseInt(pincode));
+  @Get('validate/:pincode')
+  async validatePincode(@Param('pincode') pincode) {
+    return this.usersService.validatePincode(parseInt(pincode));
+  }
+
+  @Post('setNewPassword/:pincode')
+  async setNewPassword(@Param('pincode') pincode, @Body() validatePincodeDto: ValidatePincodeDto) {
+    return this.usersService.setNewPassword(validatePincodeDto, parseInt(pincode));
   }
 
 
