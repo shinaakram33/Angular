@@ -58,7 +58,12 @@ export class UsersService {
       if (newPassword === confirmPassword) {
         const salt = await bcrypt.genSalt();
         const hashedPassword = await bcrypt.hash(newPassword, salt)
-        return this.userModel.findOneAndUpdate(id, { password: hashedPassword });
+        await this.userModel.findOneAndUpdate(id, { password: hashedPassword });
+        let obj = {
+          "status": 200,
+          "message": "Password has been reset"
+        }
+      return obj;;
       }
       else {
         throw new ConflictException('Passwords do not match')

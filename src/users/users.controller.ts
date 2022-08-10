@@ -25,7 +25,7 @@ export class UsersController {
     return this.usersService.login(loginUserDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  //@UseGuards(JwtAuthGuard)
   @Post('resetPassword/:_id')
   async resetPass(@Param('_id') id, @Body() resetPasswordDto: ResetPasswordDto) {
     return this.usersService.resetPass(resetPasswordDto, id);
