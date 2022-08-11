@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ForgetPasswordDto } from './dto/forget-password.dto';
 import { ValidatePincodeDto } from './dto/validate-pincode.dto';
+import mongoose from 'mongoose';
 
 @Injectable()
 export class UsersService {
@@ -53,18 +54,25 @@ export class UsersService {
 
   async resetPass(resetPasswordDto: ResetPasswordDto, id: any): Promise<any> {
     const { oldPassword, newPassword, confirmPassword } = resetPasswordDto
-    const user: any = await this.userModel.findOne({ id })
+
+    const user: any = await this.userModel.findById(id)
+    console.log(user);
     if (user && bcrypt.compare(oldPassword, user.password)) {
+
       if (newPassword === confirmPassword) {
         const salt = await bcrypt.genSalt();
         const hashedPassword = await bcrypt.hash(newPassword, salt)
-        await this.userModel.findOneAndUpdate(id, { password: hashedPassword });
+        try {
+        await this.userModel.findOneAndUpdate(id,  {password: hashedPassword },{new:true});
+        } catch(err) {
+          throw new BadRequestException(err.message)
+        }
         let obj = {
           "status": 200,
           "message": "Password has been reset"
         }
-      return obj;;
-      }
+      return obj;
+        }
       else {
         throw new ConflictException('Passwords do not match')
       }
@@ -85,7 +93,7 @@ export class UsersService {
     console.log({ user })
     if (user) {
       const code = Math.floor(1000 + Math.random() * 9000);
-      await this.userModel.findOneAndUpdate(user.id, { pinCode: code });
+      await this.userModel.findOneAndUpdate(user.id, { pinCode: code },{new:true});
       return `Your Pin code is ${code}`
     }
     else {
