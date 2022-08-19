@@ -7,6 +7,9 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from 'src//users/auth/jwt-auth.guard';
 import { ForgetPasswordDto } from './dto/forget-password.dto';
 import { ValidatePincodeDto } from './dto/validate-pincode.dto';
+import { identity } from 'rxjs';
+import { GetUser } from './auth/GetUser.decorator';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 
 @Controller('users')
@@ -77,5 +80,20 @@ export class UsersController {
     return response.status(HttpStatus.OK).json({
       deleteUser
     })
+  }
+
+  @Post('admin/addnewuser')
+  async addUserByAdmin(@Body() createUserDto: CreateUserDto, @GetUser() user:User){
+    return await this.usersService.addUserByAdmin(createUserDto, user);
+  }
+
+  @Post('admin/updateuser/:id')
+  async updateUserByAdmin(@Body() updateUserDto: UpdateUserDto, @GetUser() user:User, @Param('id') id){
+
+  }
+
+  @Post('admin/deleteuser/:id')
+  async deleteUserByAdmin(@GetUser() user:User, @Param('id') id){
+    return await this.usersService.deleteUserByAdmin(user, id);
   }
 }

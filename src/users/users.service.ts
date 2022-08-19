@@ -10,6 +10,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ForgetPasswordDto } from './dto/forget-password.dto';
 import { ValidatePincodeDto } from './dto/validate-pincode.dto';
 import mongoose from 'mongoose';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -132,8 +133,6 @@ export class UsersService {
     }
   }
 
-
-
   async readAll(): Promise<User[]> {
     return await this.userModel.find().exec();
   }
@@ -148,6 +147,68 @@ export class UsersService {
 
   async delete(id): Promise<any> {
     return await this.userModel.findByIdAndRemove(id);
+  }
+
+  async addUserByAdmin(createUserDto: CreateUserDto, user:User){
+      //check if user is admin
+      //if yes then create user
+      //else throw an exception
+      try{
+        console.log(user);
+        if(user.role == 'ADMIN'){
+          return this.create(createUserDto);
+        }else{
+          throw new UnauthorizedException('Unauthorized User');
+        }
+
+      }catch(error){
+        throw new BadRequestException(error.message);
+      }
+  }
+
+  async updateUserByAdmin(updateUserDto: UpdateUserDto, user:User, userId){
+      //check if user is admin
+      //if yes then check if user exists
+      //if yes then update user details
+      //else throw an exception
+      try {
+        if (user.role == 'ADMIN') {
+          const userExists = await this.userModel.findById(userId.toString());
+          if (!userExists) {
+            throw new NotFoundException(`User with id ${userId} does not exists`);
+          }
+          if(updateUserDto.email) {
+            updateUserDto.email = updateUserDto.email.toLowerCase();
+          }
+          return await this.userModel.findOneAndUpdate({_id: userId}, updateUserDto, {
+            new: true,
+          });
+        } else {
+          throw new UnauthorizedException('Unauthorized User');
+        }
+      } catch (error) {
+        throw new BadRequestException(error.message);
+      }
+  }
+
+  async deleteUserByAdmin(user: User, userId){
+      //check if user is admin
+      //if yes then check if user exists
+      //if yes then delete the user
+      //else throw an exception
+      try{
+        if(user.role == 'ADMIN'){
+          const userExists = await this.userModel.findById(userId.toString());
+          if (!userExists) {
+            throw new NotFoundException(`User with id ${userId} does not exists`);
+          }
+          return this.delete(userId);
+        }else{
+          throw new UnauthorizedException('Unauthorized User');
+        }
+      }catch(error){
+        throw new BadRequestException(error.message);
+      }
   }
 
 }
