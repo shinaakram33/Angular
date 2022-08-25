@@ -10,6 +10,9 @@ import { ValidatePincodeDto } from './dto/validate-pincode.dto';
 import { identity } from 'rxjs';
 import { GetUser } from './auth/GetUser.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
+
 
 
 @Controller('users')
@@ -82,16 +85,22 @@ export class UsersController {
     })
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Post('admin/addnewuser')
   async addUserByAdmin(@Body() createUserDto: CreateUserDto, @GetUser() user:User){
+    console.log('hi');
     return await this.usersService.addUserByAdmin(createUserDto, user);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Post('admin/updateuser/:id')
   async updateUserByAdmin(@Body() updateUserDto: UpdateUserDto, @GetUser() user:User, @Param('id') id){
-
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @Post('admin/deleteuser/:id')
   async deleteUserByAdmin(@GetUser() user:User, @Param('id') id){
     return await this.usersService.deleteUserByAdmin(user, id);

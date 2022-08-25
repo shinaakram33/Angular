@@ -19,6 +19,16 @@ export class UsersService {
     private jwtService: JwtService
   ) { }
 
+  async validateUser(email: string){
+    const user: any = await this.userModel.findOne({ email });
+   // console.log(user.password+" "+password);
+    if (user) {
+      return user;
+    }else{
+      throw new UnauthorizedException('Please check you login credentials')
+    }
+  }
+
   async create(createUserDto: CreateUserDto): Promise<User> {
     const user = await this.userModel.findOne({ email: createUserDto.email })
     if (!user) {
@@ -48,7 +58,6 @@ export class UsersService {
       }
     } else {
       throw new UnauthorizedException('Please check you login credentials')
-
     }
   }
 
