@@ -1,24 +1,26 @@
-import { Controller, Post, Body, Param, UseGuards, Res, Delete, Put, HttpStatus, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Res,
+  Delete,
+  Put,
+  HttpStatus,
+  Get,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from 'src/schemas/user.schema';
 import { LoginUserDTO } from './dto/login-user.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { JwtAuthGuard } from 'src//users/auth/jwt-auth.guard';
 import { ForgetPasswordDto } from './dto/forget-password.dto';
 import { ValidatePincodeDto } from './dto/validate-pincode.dto';
-import { identity } from 'rxjs';
-import { GetUser } from './auth/GetUser.decorator';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
-
-
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService,
-  ) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Post('signup')
   create(@Body() createUserDto: CreateUserDto): Promise<User> {
@@ -33,7 +35,10 @@ export class UsersController {
 
   //@UseGuards(JwtAuthGuard)
   @Post('resetPassword/:_id')
-  async resetPass(@Param('_id') id, @Body() resetPasswordDto: ResetPasswordDto) {
+  async resetPass(
+    @Param('_id') id,
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ) {
     return this.usersService.resetPass(resetPasswordDto, id);
   }
 
@@ -48,61 +53,45 @@ export class UsersController {
   }
 
   @Post('setNewPassword/:pincode')
-  async setNewPassword(@Param('pincode') pincode, @Body() validatePincodeDto: ValidatePincodeDto) {
-    return this.usersService.setNewPassword(validatePincodeDto, parseInt(pincode));
+  async setNewPassword(
+    @Param('pincode') pincode,
+    @Body() validatePincodeDto: ValidatePincodeDto,
+  ) {
+    return this.usersService.setNewPassword(
+      validatePincodeDto,
+      parseInt(pincode),
+    );
   }
-
 
   @Get('getall')
   async fetchAll(@Res() response) {
     const users = await this.usersService.readAll();
     return response.status(HttpStatus.OK).json({
-      users
-    })
+      users,
+    });
   }
 
   @Get('getOne/:id')
   async findById(@Res() response, @Param('id') id) {
     const user = await this.usersService.readById(id);
     return response.status(HttpStatus.OK).json({
-      user
-    })
+      user,
+    });
   }
 
   @Put('update/:id')
   async update(@Res() response, @Param('id') id, @Body() user: User) {
     const updateUser = await this.usersService.update(id, user);
     return response.status(HttpStatus.OK).json({
-      updateUser
-    })
+      updateUser,
+    });
   }
 
   @Delete('delete/:id')
   async delete(@Res() response, @Param('id') id) {
     const deleteUser = await this.usersService.delete(id);
     return response.status(HttpStatus.OK).json({
-      deleteUser
-    })
-  }
-
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
-  @Post('admin/addnewuser')
-  async addUserByAdmin(@Body() createUserDto: CreateUserDto, @GetUser() user:User){
-    console.log('hi');
-    return await this.usersService.addUserByAdmin(createUserDto, user);
-  }
-
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
-  @Post('admin/updateuser/:id')
-  async updateUserByAdmin(@Body() updateUserDto: UpdateUserDto, @GetUser() user:User, @Param('id') id){
-  }
-
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
-  @Post('admin/deleteuser/:id')
-  async deleteUserByAdmin(@GetUser() user:User, @Param('id') id){
-    return await this.usersService.deleteUserByAdmin(user, id);
+      deleteUser,
+    });
   }
 }

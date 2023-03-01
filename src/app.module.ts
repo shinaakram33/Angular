@@ -4,6 +4,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 
 @Module({
-  imports: [UsersModule, MongooseModule.forRoot('mongodb+srv://thealitahir:punjabf13@cluster0.qbtub.azure.mongodb.net/authentication')],
+  imports: [
+    UsersModule,
+    MongooseModule.forRoot(
+      'mongodb+srv://thealitahir:punjabf13@cluster0.qbtub.azure.mongodb.net/authentication',
+    ),
+  ],
 })
 export class AppModule { }

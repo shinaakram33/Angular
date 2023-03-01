@@ -12,14 +12,5 @@ export class CreateUserDto {
 
     @IsNotEmpty()
     @IsString()
-    phone: string;
-
-    @IsNotEmpty()
-    @IsString()
-    @MinLength(8)
-    @MaxLength(16)
     password: string;
-
-    @IsString()
-    role: string;
 }
